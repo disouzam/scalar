@@ -1,5 +1,5 @@
 export { createHash } from './createHash'
-export { fetchSpecFromUrl } from './fetch-spec'
+export { fetchSpecFromUrl } from './fetchSpecFromUrl'
 export { getExampleFromSchema } from './getExampleFromSchema'
 export { getHarRequest } from './getHarRequest'
 export { getParametersFromOperation } from './getParametersFromOperation'
