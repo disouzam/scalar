@@ -71,11 +71,6 @@ const formattedResponseData = computed(() => {
 })
 </script>
 <template>
-  <!-- <div
-    v-if="response.error"
-    class="error-message">
-    {{ response.error.message }}
-  </div> -->
   <CollapsibleSection title="Body">
     <template v-if="response">
       <ScalarCodeBlock
@@ -101,13 +96,3 @@ const formattedResponseData = computed(() => {
     </div>
   </CollapsibleSection>
 </template>
-
-<!-- <style scoped>
-.error-message {
-  padding: 10px;
-  width: 100%;
-  color: var(--scalar-color-red);
-  border-top: none;
-  font-size: var(--scalar-small);
-}
-</style> -->
