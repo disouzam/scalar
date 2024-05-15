@@ -1,38 +1,41 @@
 <script lang="ts" setup>
 import { ScalarCodeBlock } from '@scalar/components'
+import { isJsonString } from '@scalar/oas-utils'
+import type { AxiosHeaders } from 'axios'
 import contentType from 'content-type'
-import { computed } from 'vue'
+import { computed, toRaw } from 'vue'
 
 import { CollapsibleSection } from '../../CollapsibleSection'
 
-const props = withDefaults(
-  defineProps<{
-    active: boolean
-    data: any
-    headers: Record<string, string>[]
-  }>(),
-  {
-    active: false,
-    data: null,
-  },
-)
+const props = defineProps<{
+  response?: any
+}>()
 
+// In order to render the response body, we need to know the media type.
 const mediaType = computed(() => {
-  const contentTypeHeader = props.headers.find(
-    (header) => header.name.toLowerCase() === 'content-type',
+  // Transform all header keys to lowercase
+  const headers = Object.fromEntries(
+    Object.entries(props.response.headers as AxiosHeaders).map(
+      ([key, value]) => [key.toLowerCase(), value],
+    ),
   )
+
+  // Get the content-type header
+  const contentTypeHeader = headers['content-type']
 
   if (!contentTypeHeader) {
     return null
   }
 
+  // Parse the header
   try {
-    return contentType.parse(contentTypeHeader.value).type
+    return contentType.parse(contentTypeHeader).type
   } catch {
     return null
   }
 })
 
+// Determine the CodeMirror language based on the media type
 const codeMirrorLanguage = computed((): string | null => {
   if (
     mediaType.value === 'application/json' ||
@@ -52,14 +55,33 @@ const codeMirrorLanguage = computed((): string | null => {
 
   return null
 })
+
+// Pretty print JSON
+const formattedResponseData = computed(() => {
+  const value = props.response?.data
+
+  // Format JSON
+  if (value && isJsonString(value)) {
+    return JSON.stringify(JSON.parse(value as string), null, 2)
+  } else if (value && typeof toRaw(value) === 'object') {
+    return JSON.stringify(value, null, 2)
+  }
+
+  return value
+})
 </script>
 <template>
+  <!-- <div
+    v-if="response.error"
+    class="error-message">
+    {{ response.error.message }}
+  </div> -->
   <CollapsibleSection title="Body">
-    <template v-if="active">
+    <template v-if="response">
       <ScalarCodeBlock
         v-if="codeMirrorLanguage"
         class="custom-scroll"
-        :content="data"
+        :content="formattedResponseData"
         :lang="codeMirrorLanguage" />
       <div
         v-else
@@ -79,3 +101,13 @@ const codeMirrorLanguage = computed((): string | null => {
     </div>
   </CollapsibleSection>
 </template>
+
+<!-- <style scoped>
+.error-message {
+  padding: 10px;
+  width: 100%;
+  color: var(--scalar-color-red);
+  border-top: none;
+  font-size: var(--scalar-small);
+}
+</style> -->
